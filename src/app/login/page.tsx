@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,11 +12,10 @@ type LoginPageProps = {
   params: Promise<Record<string, never>>;
 };
 
-export default function LoginPage({ params }: LoginPageProps) {
-  void params;
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refresh, isAuthenticated, isLoading } = useCurrentUser();
+  const { refresh, isAuthenticated } = useCurrentUser();
   const loginMutation = useLogin();
   const [formState, setFormState] = useState({ username: "", password: "" });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -27,14 +26,6 @@ export default function LoginPage({ params }: LoginPageProps) {
       router.replace(redirectedFrom);
     }
   }, [isAuthenticated, router, searchParams]);
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto flex min-h-screen w-full max-w-4xl items-center justify-center px-6 py-16">
-        <LoadingState variant="text" count={3} className="w-full max-w-md" />
-      </div>
-    );
-  }
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,5 +129,34 @@ export default function LoginPage({ params }: LoginPageProps) {
         </figure>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage({ params }: LoginPageProps) {
+  void params;
+  const { isAuthenticated, isLoading } = useCurrentUser();
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto flex min-h-screen w-full max-w-4xl items-center justify-center px-6 py-16">
+        <LoadingState variant="text" count={3} className="w-full max-w-md" />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex min-h-screen w-full max-w-4xl items-center justify-center px-6 py-16">
+          <LoadingState variant="text" count={3} className="w-full max-w-md" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

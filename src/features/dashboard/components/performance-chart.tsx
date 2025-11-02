@@ -127,10 +127,12 @@ const IntlConferenceCountChart = memo(
 IntlConferenceCountChart.displayName = "IntlConferenceCountChart";
 
 export const PerformanceChart = memo(({ performance }: PerformanceChartProps) => {
-  const techTransferRevenueData = performance.tech_transfer_revenue.map((item) => ({
-    ...item,
-    year: item.evaluation_year,
-  }));
+  const techTransferRevenueData: Array<{ evaluation_year: number; revenue: number; year: number }> =
+    performance.tech_transfer_revenue.map((item) => ({
+      evaluation_year: item.evaluation_year,
+      revenue: item.revenue,
+      year: item.evaluation_year,
+    }));
 
   return (
     <div className="space-y-6">

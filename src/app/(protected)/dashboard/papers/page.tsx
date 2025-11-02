@@ -174,7 +174,7 @@ export default function PapersPage({ params }: PapersPageProps) {
                       cy="50%"
                       labelLine={false}
                       label={({ journal_grade, count, percent }) =>
-                        `${journal_grade}: ${count}건 (${(percent * 100).toFixed(1)}%)`
+                        `${journal_grade}: ${count}건 (${(Number(percent) * 100).toFixed(1)}%)`
                       }
                       outerRadius={120}
                       fill="#8884d8"

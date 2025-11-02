@@ -196,7 +196,7 @@ export default function StudentsPage({ params }: StudentsPageProps) {
                       cy="50%"
                       labelLine={false}
                       label={({ program_type, student_count, percent }) =>
-                        `${program_type}: ${student_count}명 (${(percent * 100).toFixed(1)}%)`
+                        `${program_type}: ${student_count}명 (${(Number(percent) * 100).toFixed(1)}%)`
                       }
                       outerRadius={120}
                       fill="#8884d8"

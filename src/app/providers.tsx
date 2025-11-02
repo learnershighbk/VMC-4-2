@@ -6,13 +6,39 @@ import {
   isServer,
   QueryClient,
   QueryClientProvider,
+  QueryCache,
+  MutationCache,
 } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { extractApiErrorMessage } from "@/lib/remote/api-client";
 import { toast } from "@/hooks/use-toast";
 
 function makeQueryClient() {
+  const queryCache = new QueryCache({
+    onError: (error) => {
+      const message = extractApiErrorMessage(error, "데이터를 불러오는 중 오류가 발생했습니다.");
+      toast({
+        title: "오류 발생",
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const mutationCache = new MutationCache({
+    onError: (error) => {
+      const message = extractApiErrorMessage(error, "요청 처리 중 오류가 발생했습니다.");
+      toast({
+        title: "오류 발생",
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return new QueryClient({
+    queryCache,
+    mutationCache,
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
@@ -35,26 +61,10 @@ function makeQueryClient() {
           return failureCount < 2;
         },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-        onError: (error) => {
-          const message = extractApiErrorMessage(error, "데이터를 불러오는 중 오류가 발생했습니다.");
-          toast({
-            title: "오류 발생",
-            description: message,
-            variant: "destructive",
-          });
-        },
       },
       mutations: {
         retry: 1,
         retryDelay: 1000,
-        onError: (error) => {
-          const message = extractApiErrorMessage(error, "요청 처리 중 오류가 발생했습니다.");
-          toast({
-            title: "오류 발생",
-            description: message,
-            variant: "destructive",
-          });
-        },
       },
     },
   });

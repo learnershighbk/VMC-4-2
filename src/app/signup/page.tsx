@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -19,11 +19,10 @@ type SignupPageProps = {
   params: Promise<Record<string, never>>;
 };
 
-export default function SignupPage({ params }: SignupPageProps) {
-  void params;
+function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, refresh, isLoading } = useCurrentUser();
+  const { isAuthenticated, refresh } = useCurrentUser();
   const registerMutation = useRegister();
   const [formState, setFormState] = useState(defaultFormState);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -34,14 +33,6 @@ export default function SignupPage({ params }: SignupPageProps) {
       router.replace(redirectedFrom);
     }
   }, [isAuthenticated, router, searchParams]);
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto flex min-h-screen w-full max-w-4xl items-center justify-center px-6 py-16">
-        <LoadingState variant="text" count={3} className="w-full max-w-md" />
-      </div>
-    );
-  }
 
   const isSubmitDisabled = useMemo(
     () =>
@@ -205,5 +196,34 @@ export default function SignupPage({ params }: SignupPageProps) {
         </figure>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage({ params }: SignupPageProps) {
+  void params;
+  const { isAuthenticated, isLoading } = useCurrentUser();
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto flex min-h-screen w-full max-w-4xl items-center justify-center px-6 py-16">
+        <LoadingState variant="text" count={3} className="w-full max-w-md" />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex min-h-screen w-full max-w-4xl items-center justify-center px-6 py-16">
+          <LoadingState variant="text" count={3} className="w-full max-w-md" />
+        </div>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   );
 }

@@ -193,8 +193,8 @@ export default function BudgetPage({ params }: BudgetPageProps) {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ funding_agency, total_budget, percent }: { funding_agency: string; total_budget: number; percent: number }) =>
-                        `${funding_agency}: ${total_budget.toLocaleString()}원 (${(percent * 100).toFixed(1)}%)`
+                      label={({ funding_agency, total_budget, percent }) =>
+                        `${funding_agency}: ${total_budget.toLocaleString()}원 (${(Number(percent) * 100).toFixed(1)}%)`
                       }
                       outerRadius={120}
                       fill="#8884d8"

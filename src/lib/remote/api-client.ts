@@ -2,7 +2,7 @@ import axios, { isAxiosError, type AxiosError } from "axios";
 import { tokenStorage } from "@/lib/auth/token";
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000",
   headers: {
     "Content-Type": "application/json",
   },
@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
 
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL ?? ""}/api/auth/token/refresh/`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"}/api/auth/token/refresh/`,
           { refresh: refreshToken }
         );
 
@@ -85,6 +85,7 @@ type ErrorPayload = {
     message?: string;
   };
   message?: string;
+  errors?: Record<string, string | string[]>;
 };
 
 export const extractApiErrorMessage = (
@@ -92,6 +93,11 @@ export const extractApiErrorMessage = (
   fallbackMessage = "API request failed."
 ) => {
   if (isAxiosError(error)) {
+    // 404 에러 처리
+    if (error.response?.status === 404) {
+      return "요청한 리소스를 찾을 수 없습니다. API 서버가 실행 중인지 확인해주세요.";
+    }
+
     const payload = error.response?.data as ErrorPayload | undefined;
 
     if (typeof payload?.detail === "string") {
@@ -104,6 +110,19 @@ export const extractApiErrorMessage = (
 
     if (typeof payload?.message === "string") {
       return payload.message;
+    }
+
+    // 백엔드 serializer 에러 형식 처리
+    if (payload?.errors && typeof payload.errors === "object") {
+      const errorMessages = Object.entries(payload.errors)
+        .map(([field, messages]) => {
+          const messageArray = Array.isArray(messages) ? messages : [messages];
+          return `${field}: ${messageArray.join(", ")}`;
+        })
+        .join("; ");
+      if (errorMessages) {
+        return errorMessages;
+      }
     }
   }
 

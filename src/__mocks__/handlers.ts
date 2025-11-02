@@ -35,6 +35,45 @@ export const handlers = [
     );
   }),
 
+  http.post(`${API_BASE_URL}/api/auth/register/`, async ({ request }) => {
+    const body = await request.json() as { 
+      username: string; 
+      email: string; 
+      password: string; 
+      password_confirm: string;
+    };
+
+    if (!body.username || !body.email || !body.password) {
+      return HttpResponse.json(
+        { success: false, detail: '입력 데이터 검증 실패', errors: { username: ['이 필드는 필수입니다.'] } },
+        { status: 400 }
+      );
+    }
+
+    if (body.password !== body.password_confirm) {
+      return HttpResponse.json(
+        { success: false, detail: '입력 데이터 검증 실패', errors: { password: ['비밀번호가 일치하지 않습니다.'] } },
+        { status: 400 }
+      );
+    }
+
+    return HttpResponse.json({
+      success: true,
+      data: {
+        access: 'mock-access-token',
+        refresh: 'mock-refresh-token',
+        user: {
+          id: 'mock-user-id',
+          username: body.username,
+          email: body.email,
+          is_admin: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      },
+    }, { status: 201 });
+  }),
+
   // 대시보드 Overview API
   http.get(`${API_BASE_URL}/api/dashboard/overview/`, ({ request }) => {
     const authHeader = request.headers.get('Authorization');

@@ -13,13 +13,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
+type FilterOption = {
+  readonly key: string;
+  readonly label: string;
+  readonly options: readonly { readonly value: string; readonly label: string }[];
+};
+
 type DashboardFilterProps = {
   filters: Record<string, string | undefined>;
-  filterOptions: {
-    key: string;
-    label: string;
-    options: { value: string; label: string }[];
-  }[];
+  filterOptions: readonly FilterOption[];
   onFilterChange: (key: string, value: string | undefined) => void;
   onReset?: () => void;
 };

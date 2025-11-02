@@ -195,9 +195,10 @@ export default function StudentsPage({ params }: StudentsPageProps) {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ program_type, student_count, percent }) =>
-                        `${program_type}: ${student_count}명 (${(Number(percent) * 100).toFixed(1)}%)`
-                      }
+                      label={({ program_type, student_count, percent }) => {
+                        const percentValue = typeof percent === 'number' ? percent : 0;
+                        return `${program_type}: ${student_count}명 (${(percentValue * 100).toFixed(1)}%)`;
+                      }}
                       outerRadius={120}
                       fill="#8884d8"
                       dataKey="student_count"

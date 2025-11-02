@@ -173,9 +173,10 @@ export default function PapersPage({ params }: PapersPageProps) {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ journal_grade, count, percent }) =>
-                        `${journal_grade}: ${count}건 (${(Number(percent) * 100).toFixed(1)}%)`
-                      }
+                      label={({ journal_grade, count, percent }) => {
+                        const percentValue = typeof percent === 'number' ? percent : 0;
+                        return `${journal_grade}: ${count}건 (${(percentValue * 100).toFixed(1)}%)`;
+                      }}
                       outerRadius={120}
                       fill="#8884d8"
                       dataKey="count"

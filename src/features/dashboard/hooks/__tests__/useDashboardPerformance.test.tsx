@@ -92,14 +92,18 @@ const createWrapper = () => {
     },
   });
 
-  return ({ children }: { children: ReactNode }) => (
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+  Wrapper.displayName = 'TestWrapper';
+
+  return Wrapper;
 };
 
 describe("useDashboardPerformance", () => {
   it("성공적으로 데이터를 가져와야 함", async () => {
     // Mock API client to set auth header
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     vi.spyOn(require("@/lib/remote/api-client"), "apiClient").mockImplementation(() => ({
       get: async (url: string) => {
         const response = await fetch(`${API_BASE_URL}${url}`, {

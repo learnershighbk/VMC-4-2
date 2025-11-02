@@ -193,8 +193,10 @@ export default function BudgetPage({ params }: BudgetPageProps) {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ funding_agency, total_budget, percent }: any) => {
-                        const percentValue = typeof percent === 'number' ? percent * 100 : 0;
+                      label={(props: any) => {
+                        const { funding_agency, total_budget, percent } = props;
+                        const percentNum = typeof percent === 'number' ? percent : typeof percent === 'string' ? parseFloat(percent) : 0;
+                        const percentValue = percentNum * 100;
                         return `${funding_agency}: ${total_budget.toLocaleString()}원 (${percentValue.toFixed(1)}%)`;
                       }}
                       outerRadius={120}

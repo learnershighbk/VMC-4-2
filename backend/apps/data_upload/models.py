@@ -104,7 +104,7 @@ class DepartmentKPI(BaseModel):
             models.Index(fields=['evaluation_year', 'department'], name='idx_department_kpi_year_dept'),
             models.Index(fields=['college'], name='idx_department_kpi_college'),
             models.Index(fields=['department'], name='idx_department_kpi_department'),
-            models.Index(fields=['evaluation_year', 'employment_rate'], name='idx_department_kpi_year_employment'),
+            models.Index(fields=['evaluation_year', 'employment_rate'], name='idx_dept_kpi_year_emp'),
         ]
 
     def __str__(self):
@@ -190,9 +190,9 @@ class PublicationList(BaseModel):
         indexes = [
             models.Index(fields=['publication_id'], name='idx_publication_list_pub_id'),
             models.Index(fields=['publication_date'], name='idx_publication_list_date'),
-            models.Index(fields=['college', 'department'], name='idx_publication_list_college_dept'),
-            models.Index(fields=['journal_grade'], name='idx_publication_list_journal_grade'),
-            models.Index(fields=['publication_date', 'journal_grade'], name='idx_publication_list_date_grade'),
+            models.Index(fields=['college', 'department'], name='idx_pub_list_col_dept'),
+            models.Index(fields=['journal_grade'], name='idx_pub_list_jnl_grade'),
+            models.Index(fields=['publication_date', 'journal_grade'], name='idx_pub_list_date_grade'),
         ]
 
     def __str__(self):
@@ -282,8 +282,8 @@ class ResearchProjectData(BaseModel):
             models.Index(fields=['department'], name='idx_research_project_dept'),
             models.Index(fields=['execution_date'], name='idx_research_project_date'),
             models.Index(fields=['status'], name='idx_research_project_status'),
-            models.Index(fields=['funding_agency'], name='idx_research_project_funding_agency'),
-            models.Index(fields=['funding_agency', 'execution_date'], name='idx_research_project_agency_date'),
+            models.Index(fields=['funding_agency'], name='idx_res_proj_fund_agency'),
+            models.Index(fields=['funding_agency', 'execution_date'], name='idx_res_proj_agency_date'),
         ]
 
     def __str__(self):
@@ -390,9 +390,9 @@ class StudentRoster(BaseModel):
         ]
         indexes = [
             models.Index(fields=['student_id'], name='idx_student_roster_student_id'),
-            models.Index(fields=['college', 'department'], name='idx_student_roster_college_dept'),
-            models.Index(fields=['program_type'], name='idx_student_roster_program_type'),
-            models.Index(fields=['academic_status'], name='idx_student_roster_academic_status'),
+            models.Index(fields=['college', 'department'], name='idx_stu_roster_col_dept'),
+            models.Index(fields=['program_type'], name='idx_stu_roster_prog_type'),
+            models.Index(fields=['academic_status'], name='idx_stu_roster_acad_status'),
             models.Index(fields=['email'], name='idx_student_roster_email'),
         ]
 

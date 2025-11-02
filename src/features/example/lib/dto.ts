@@ -1,15 +1,7 @@
-import { z } from 'zod';
+export {
+  ExampleParamsSchema,
+  ExampleResponseSchema,
+} from '@/features/example/backend/schema';
 
-export const ExampleParamsSchema = z.object({
-  id: z.string().uuid(),
-});
+export type { ExampleResponse } from '@/features/example/backend/schema';
 
-export const ExampleResponseSchema = z.object({
-  id: z.string().uuid(),
-  fullName: z.string(),
-  bio: z.string().nullable(),
-  avatarUrl: z.string().url(),
-  updatedAt: z.string(),
-});
-
-export type ExampleResponse = z.infer<typeof ExampleResponseSchema>;

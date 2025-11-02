@@ -5,12 +5,10 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useState,
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { match, P } from "ts-pattern";
-import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { useCurrentUserFromApi } from "../hooks/useCurrentUserFromApi";
 import type {
   CurrentUserContextValue,
   CurrentUserSnapshot,
@@ -20,46 +18,29 @@ const CurrentUserContext = createContext<CurrentUserContextValue | null>(null);
 
 type CurrentUserProviderProps = {
   children: ReactNode;
-  initialState: CurrentUserSnapshot;
 };
 
 export const CurrentUserProvider = ({
   children,
-  initialState,
 }: CurrentUserProviderProps) => {
   const queryClient = useQueryClient();
-  const [snapshot, setSnapshot] = useState<CurrentUserSnapshot>(initialState);
+  const { data, isLoading, refetch } = useCurrentUserFromApi();
+
+  const snapshot: CurrentUserSnapshot = useMemo(() => {
+    if (isLoading) {
+      return { status: "loading", user: null };
+    }
+
+    return data ?? { status: "unauthenticated", user: null };
+  }, [data, isLoading]);
 
   const refresh = useCallback(async () => {
-    setSnapshot((prev) => ({ status: "loading", user: prev.user }));
-    const supabase = getSupabaseBrowserClient();
-
-    try {
-      const result = await supabase.auth.getUser();
-
-      const nextSnapshot = match(result)
-        .with({ data: { user: P.nonNullable } }, ({ data }) => ({
-          status: "authenticated" as const,
-          user: {
-            id: data.user.id,
-            email: data.user.email,
-            appMetadata: data.user.app_metadata ?? {},
-            userMetadata: data.user.user_metadata ?? {},
-          },
-        }))
-        .otherwise(() => ({ status: "unauthenticated" as const, user: null }));
-
-      setSnapshot(nextSnapshot);
-      queryClient.setQueryData(["currentUser"], nextSnapshot);
-    } catch (error) {
-      const fallbackSnapshot: CurrentUserSnapshot = {
-        status: "unauthenticated",
-        user: null,
-      };
-      setSnapshot(fallbackSnapshot);
-      queryClient.setQueryData(["currentUser"], fallbackSnapshot);
-    }
-  }, [queryClient]);
+    await refetch();
+    const result = queryClient.getQueryData<CurrentUserSnapshot>([
+      "currentUser",
+    ]);
+    return;
+  }, [queryClient, refetch]);
 
   const value = useMemo<CurrentUserContextValue>(() => {
     return {

@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^4",
@@ -20,8 +25,6 @@
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.6",
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.58.0",
     "@tanstack/react-query": "^5",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.0",
@@ -37,6 +40,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7",
     "react-use": "^17",
+    "recharts": "^3.3.0",
     "server-only": "0.0.1",
     "ts-pattern": "^5",
     "zod": "^3",
@@ -44,17 +48,27 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@tailwindcss/typography": "^0.5.10",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.3.3",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
     "eslint": "^9",
     "eslint-config-next": "15.1.0",
+    "jsdom": "^25.0.1",
+    "msw": "^2.11.6",
     "postcss": "^8",
     "tailwind-merge": "^2.5.2",
     "tailwindcss": "^4.1.13",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.8"
   }
 }

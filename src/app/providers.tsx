@@ -8,14 +8,53 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
+import { extractApiErrorMessage } from "@/lib/remote/api-client";
+import { toast } from "@/hooks/use-toast";
 
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        // With SSR, we usually want to set some default staleTime
-        // above 0 to avoid refetching immediately on the client
         staleTime: 60 * 1000,
+        gcTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
+        retry: (failureCount, error) => {
+          const axiosError = error as { response?: { status?: number } };
+          const status = axiosError?.response?.status;
+
+          if (status === 401 || status === 403) {
+            return false;
+          }
+
+          if (status === 404) {
+            return false;
+          }
+
+          return failureCount < 2;
+        },
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        onError: (error) => {
+          const message = extractApiErrorMessage(error, "데이터를 불러오는 중 오류가 발생했습니다.");
+          toast({
+            title: "오류 발생",
+            description: message,
+            variant: "destructive",
+          });
+        },
+      },
+      mutations: {
+        retry: 1,
+        retryDelay: 1000,
+        onError: (error) => {
+          const message = extractApiErrorMessage(error, "요청 처리 중 오류가 발생했습니다.");
+          toast({
+            title: "오류 발생",
+            description: message,
+            variant: "destructive",
+          });
+        },
       },
     },
   });

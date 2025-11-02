@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(move \".claude\\agents\\auth.md\" \".claude\\agents\\auth-policy-designer.md\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -4,8 +4,8 @@ import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Copy, CheckCircle2, Boxes, Database, LogOut, Server } from "lucide-react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { tokenStorage } from "@/lib/auth/token";
 
 type SetupCommand = {
   id: string;
@@ -21,13 +21,8 @@ const setupCommands: SetupCommand[] = [
 
 const envVariables = [
   {
-    key: "SUPABASE_URL",
-    description: "Supabase 프로젝트 URL (https://...supabase.co)",
-  },
-  {
-    key: "SUPABASE_SERVICE_ROLE_KEY",
-    description:
-      "서버 전용 service-role 키. 절대 클라이언트로 노출하지 마세요.",
+    key: "NEXT_PUBLIC_API_BASE_URL",
+    description: "Django 백엔드 API URL (예: http://localhost:8000)",
   },
 ];
 
@@ -38,18 +33,18 @@ const directorySummary = [
     path: "src/app",
   },
   {
-    title: "Hono 엔트리포인트",
-    description: "Next.js Route Handler에서 Hono 앱을 위임",
-    path: "src/app/api/[[...hono]]",
+    title: "API 클라이언트",
+    description: "Django 백엔드 API 호출을 위한 HTTP 클라이언트",
+    path: "src/lib/remote",
   },
   {
-    title: "백엔드 구성요소",
-    description: "Hono 앱, 미들웨어, Supabase 서비스",
-    path: "src/backend",
+    title: "백엔드 서비스",
+    description: "Django REST Framework 백엔드 (별도 서비스)",
+    path: "backend",
   },
   {
     title: "기능 모듈",
-    description: "각 기능별 DTO, 라우터, React Query 훅",
+    description: "각 기능별 컴포넌트, React Query 훅, DTO 정의",
     path: "src/features/[feature]",
   },
 ];
@@ -57,21 +52,21 @@ const directorySummary = [
 const backendBuildingBlocks = [
   {
     icon: <Server className="w-4 h-4" />,
-    title: "Hono 앱 구성",
+    title: "Django REST Framework",
     description:
-      "errorBoundary → withAppContext → withSupabase → registerExampleRoutes 순서로 미들웨어와 라우터를 조립합니다.",
+      "Django ORM과 DRF Serializer를 통해 안정적인 API를 제공하며, JWT 기반 인증을 지원합니다.",
   },
   {
     icon: <Database className="w-4 h-4" />,
-    title: "Supabase 서비스",
+    title: "PostgreSQL 데이터베이스",
     description:
-      "service-role 키로 생성한 서버 클라이언트를 사용하고, 쿼리 결과는 ts-pattern으로 분기 가능한 결과 객체로 반환합니다.",
+      "Django ORM을 통해 PostgreSQL 데이터베이스에 접근하며, Railway에서 자동 프로비저닝됩니다.",
   },
   {
     icon: <Boxes className="w-4 h-4" />,
     title: "React Query 연동",
     description:
-      "모든 클라이언트 데이터 패칭은 useExampleQuery와 같은 React Query 훅을 통해 수행하며, DTO 스키마로 응답을 검증합니다.",
+      "모든 클라이언트 데이터 패칭은 React Query 훅을 통해 수행하며, `@/lib/remote/api-client`를 통해 Django API를 호출합니다.",
   },
 ];
 
@@ -81,8 +76,7 @@ export default function Home() {
   const router = useRouter();
 
   const handleSignOut = useCallback(async () => {
-    const supabase = getSupabaseBrowserClient();
-    await supabase.auth.signOut();
+    tokenStorage.clearTokens();
     await refresh();
     router.replace("/");
   }, [refresh, router]);
@@ -97,7 +91,7 @@ export default function Home() {
     if (isAuthenticated && user) {
       return (
         <div className="flex items-center gap-3 text-sm text-slate-200">
-          <span className="truncate">{user.email ?? "알 수 없는 사용자"}</span>
+          <span className="truncate">{user.username ?? user.email ?? "알 수 없는 사용자"}</span>
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard"
@@ -119,18 +113,12 @@ export default function Home() {
     }
 
     return (
-      <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-3 text-sm">
         <Link
           href="/login"
           className="rounded-md border border-slate-600 px-3 py-1 text-slate-200 transition hover:border-slate-400 hover:bg-slate-800"
         >
           로그인
-        </Link>
-        <Link
-          href="/signup"
-          className="rounded-md bg-slate-100 px-3 py-1 text-slate-900 transition hover:bg-white"
-        >
-          회원가입
         </Link>
       </div>
     );
@@ -147,17 +135,17 @@ export default function Home() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-16">
         <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-900/80 px-6 py-4">
           <div className="text-sm font-medium text-slate-300">
-            SuperNext — 구조적인 Next.js + Supabase 템플릿
+            Next.js + Django REST Framework 풀스택 프로젝트
           </div>
           {authActions}
         </div>
         <header className="space-y-4">
           <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-            SuperNext 프로젝트 설정 & 구조 안내서
+            프로젝트 설정 & 구조 안내서
           </h1>
           <p className="max-w-3xl text-base text-slate-300 md:text-lg">
-            React Query / Hono.js / Supabase를 사용합니다.
-            <br /> 모든 컴포넌트는 Client Component로 작성합니다.
+            Next.js 프론트엔드와 Django REST Framework 백엔드로 구성된 풀스택 프로젝트입니다.
+            <br /> 모든 컴포넌트는 Client Component로 작성하며, React Query를 사용합니다.
           </p>
         </header>
 
@@ -173,13 +161,12 @@ export default function Home() {
 
         <footer className="rounded-xl border border-slate-700 bg-slate-900/60 p-6">
           <h2 className="text-lg font-semibold text-slate-100">
-            Supabase Migration
+            시작하기
           </h2>
           <p className="mt-2 text-sm text-slate-300">
-            `supabase/migrations/20250227000100_create_example_table.sql` 파일을
-            Supabase 대시보드 SQL Editor에 업로드하여 `public.example` 테이블과
-            샘플 데이터를 생성하세요. 서비스 역할 키는 서버 환경 변수에만
-            저장하고, React Query 훅에서는 공개 API만 호출합니다.
+            백엔드 서버는 `backend/` 디렉토리에서 `python manage.py runserver`로 실행하고,
+            프론트엔드는 프로젝트 루트에서 `npm run dev`로 실행하세요. Django 데이터베이스 마이그레이션은
+            `python manage.py migrate`로 실행합니다. 자세한 내용은 `README.md`를 참고하세요.
           </p>
         </footer>
       </div>
@@ -197,7 +184,7 @@ function SetupChecklist({
   return (
     <div className="space-y-4 rounded-xl border border-slate-700 bg-slate-900/60 p-6">
       <h2 className="text-lg font-semibold text-slate-100">
-        SuperNext 설치 체크리스트
+        설치 체크리스트
       </h2>
       <ul className="space-y-3">
         {setupCommands.map((item) => (
@@ -221,8 +208,8 @@ function SetupChecklist({
         ))}
       </ul>
       <p className="text-xs text-slate-400">
-        개발 서버는 React Query Provider가 설정된 `src/app/providers.tsx`를
-        통과하여 실행됩니다.
+        프론트엔드 개발 서버는 React Query Provider가 설정된 `src/app/providers.tsx`를
+        통과하여 실행됩니다. 백엔드는 별도로 `backend/` 디렉토리에서 실행해야 합니다.
       </p>
     </div>
   );
@@ -233,8 +220,7 @@ function EnvironmentGuide() {
     <div className="space-y-4 rounded-xl border border-slate-700 bg-slate-900/60 p-6">
       <h2 className="text-lg font-semibold text-slate-100">환경 변수</h2>
       <p className="text-sm text-slate-300">
-        `.env.local` 파일에 아래 값을 추가하고, service-role 키는 서버 빌드
-        환경에서만 주입하세요.
+        `.env.local` 파일에 아래 값을 추가하세요. Django 백엔드는 별도의 환경 변수가 필요합니다.
       </p>
       <ul className="space-y-3">
         {envVariables.map((item) => (
@@ -248,8 +234,8 @@ function EnvironmentGuide() {
         ))}
       </ul>
       <p className="text-xs text-slate-400">
-        환경 스키마는 `src/backend/config/index.ts`에서 zod로 검증되며, 누락 시
-        명확한 오류를 발생시킵니다.
+        프론트엔드 환경 변수는 `src/constants/env.ts`에서 zod로 검증되며, 백엔드 환경 변수는
+        `backend/config/settings.py`에서 관리됩니다.
       </p>
     </div>
   );
@@ -259,7 +245,7 @@ function DirectoryOverview() {
   return (
     <div className="space-y-4 rounded-xl border border-slate-700 bg-slate-900/60 p-6">
       <h2 className="text-lg font-semibold text-slate-100">
-        SuperNext 주요 디렉터리
+        주요 디렉터리
       </h2>
       <ul className="space-y-3">
         {directorySummary.map((item) => (
@@ -281,7 +267,7 @@ function BackendOverview() {
   return (
     <div className="space-y-4 rounded-xl border border-slate-700 bg-slate-900/60 p-6">
       <h2 className="text-lg font-semibold text-slate-100">
-        SuperNext 백엔드 빌딩 블록
+        백엔드 아키텍처
       </h2>
       <ul className="space-y-3">
         {backendBuildingBlocks.map((item, index) => (
@@ -298,10 +284,9 @@ function BackendOverview() {
         ))}
       </ul>
       <p className="text-xs text-slate-400">
-        예시 라우터는 `src/features/example/backend/route.ts`, 서비스 로직은
-        `src/features/example/backend/service.ts`, 공통 스키마는
-        `src/features/example/backend/schema.ts`에서 관리하며 Supabase
-        `public.example` 테이블과 통신합니다.
+        Django 백엔드는 `backend/apps/` 디렉토리에서 각 기능별 앱으로 구성되며,
+        프론트엔드는 `src/features/[feature]/hooks/`에서 React Query 훅을 통해
+        API를 호출합니다. 자세한 내용은 `README.md`와 `backend/README.md`를 참고하세요.
       </p>
     </div>
   );

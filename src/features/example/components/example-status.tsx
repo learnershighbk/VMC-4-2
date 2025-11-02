@@ -52,7 +52,7 @@ export const ExampleStatus = () => {
       <header className="space-y-2 text-slate-100">
         <h1 className="text-3xl font-semibold tracking-tight">Backend Health Check</h1>
         <p className="text-sm text-slate-300">
-          예시 API(`/api/example/:id`)가 정상 동작하는지 확인합니다. Supabase 예시
+          예시 API(`/api/example/:id`)가 정상 동작하는지 확인합니다. 예시
           레코드의 UUID를 입력하면 React Query를 통해 백엔드 응답을 확인할 수
           있습니다.
         </p>
@@ -101,7 +101,7 @@ export const ExampleStatus = () => {
         )}
 
         {exampleId && query.status === 'pending' && (
-          <p className="text-sm text-slate-300">Supabase에서 데이터를 가져오는 중...</p>
+          <p className="text-sm text-slate-300">데이터를 가져오는 중...</p>
         )}
 
         {query.status === 'error' && (

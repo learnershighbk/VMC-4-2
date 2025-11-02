@@ -21,48 +21,39 @@ use following libraries for specific functionalities:
 8. `zod`: For schema validation and data integrity.
 9. `shadcn-ui`: For pre-built accessible UI components.
 10. `tailwindcss`: For utility-first CSS styling.
-11. `supabase`: For a backend-as-a-service solution.
-12. `react-hook-form`: For form validation and state management.
+11. `react-hook-form`: For form validation and state management.
 
 ## Directory Structure
 
-- src
+- src: Next.js 프론트엔드 소스 코드
 - src/app: Next.js App Routers
-- src/app/api/[[...hono]]: Hono entrypoint delegated to Next.js Route Handler (`handle(createHonoApp())`)
-- src/backend/hono: Hono 앱 본체 (`app.ts`, `context.ts`)
-- src/backend/middleware: 공통 미들웨어 (에러, 컨텍스트, Supabase 등)
-- src/backend/http: 응답 포맷, 핸들러 결과 유틸 등 공통 HTTP 레이어
-- src/backend/supabase: Supabase 클라이언트 및 설정 래퍼
-- src/backend/config: 환경 변수 파싱 및 캐싱
 - src/components/ui: shadcn-ui components
 - src/constants: Common constants
 - src/hooks: Common hooks
 - src/lib: utility functions
-- src/remote: http client
-- src/features/[featureName]/components/\*: Components for specific feature
-- src/features/[featureName]/constants/\*
-- src/features/[featureName]/hooks/\*
-- src/features/[featureName]/backend/route.ts: Hono 라우터 정의
-- src/features/[featureName]/backend/service.ts: Supabase/비즈니스 로직
-- src/features/[featureName]/backend/error.ts: 상황별 error code 정의
-- src/features/[featureName]/backend/schema.ts: 요청/응답 zod 스키마 정의
-- src/features/[featureName]/lib/\*: 클라이언트 측 DTO 재노출 등
-- supabase/migrations: Supabase SQL migration 파일 (예시 테이블 포함)
+- src/lib/remote: HTTP 클라이언트 (Django 백엔드 API 호출)
+- src/features/[featureName]/components/*: Components for specific feature
+- src/features/[featureName]/constants/*
+- src/features/[featureName]/hooks/*: React Query hooks for API calls
+- src/features/[featureName]/lib/*: 클라이언트 측 DTO 및 타입 정의
+- backend: Django REST Framework 백엔드
+- backend/config: Django 프로젝트 설정
+- backend/apps: Django 앱들
+- backend/apps/[appName]/models.py: Django 모델 정의
+- backend/apps/[appName]/serializers.py: DRF Serializers
+- backend/apps/[appName]/views.py: API View 클래스
+- backend/apps/[appName]/urls.py: URL 라우팅
 
-## Backend Layer (Hono + Next.js)
+## Backend Layer (Django REST Framework)
 
-- Next.js `app` 라우터에서 `src/app/api/[[...hono]]/route.ts` 를 통해 Hono 앱을 위임한다. 모든 HTTP 메서드는 `handle(createHonoApp())` 로 노출하며 `runtime = 'nodejs'` 로 Supabase service-role 키를 사용한다.
-- `src/backend/hono/app.ts` 의 `createHonoApp` 은 싱글턴으로 관리하며 다음 빌딩블록을 순서대로 연결한다.
-  1. `errorBoundary()` – 공통 에러 로깅 및 5xx 응답 정규화.
-  2. `withAppContext()` – `zod` 기반 환경 변수 파싱, 콘솔 기반 logger, 설정을 `c.set` 으로 주입.
-  3. `withSupabase()` – service-role 키로 생성한 Supabase 서버 클라이언트를 per-request로 주입.
-  4. `registerExampleRoutes(app)` 등 기능별 라우터 등록 (모든 라우터는 `src/features/[feature]/backend/route.ts` 에서 정의).
-- `src/backend/hono/context.ts` 의 `AppEnv` 는 `c.get`/`c.var` 로 접근 가능한 `supabase`, `logger`, `config` 키를 제공한다. 절대 `c.env` 를 직접 수정하지 않는다.
-- 공통 HTTP 응답 헬퍼는 `src/backend/http/response.ts`에서 제공하며, 모든 라우터/서비스는 `success`/`failure`/`respond` 패턴을 사용한다.
-- 기능별 백엔드 로직은 `src/features/[feature]/backend/service.ts`(Supabase 접근), `schema.ts`(요청/응답 zod 정의), `route.ts`(Hono 라우터)로 분리한다.
-- 프런트엔드가 동일 스키마를 사용할 경우 `src/features/[feature]/lib/dto.ts`에서 backend/schema를 재노출해 React Query 훅 등에서 재사용한다.
-- 새 테이블이나 시드 데이터는 반드시 `supabase/migrations` 에 SQL 파일로 추가하고, Supabase에 적용 여부를 사용자에게 위임한다.
-- 프론트엔드 레이어는 전부 Client Component (`"use client"`) 로 유지하고, 서버 상태는 `@tanstack/react-query` 로만 관리한다.
+- 백엔드는 Django REST Framework로 구현되며, 별도 서비스로 배포됩니다.
+- 프론트엔드는 `src/lib/remote/api-client.ts`를 통해 Django 백엔드 API를 호출합니다.
+- 환경 변수 `NEXT_PUBLIC_API_BASE_URL`로 백엔드 API URL을 지정합니다.
+- 모든 API 호출은 React Query 훅을 통해 관리되며, `@tanstack/react-query`를 사용합니다.
+- Django 백엔드는 JWT 기반 인증을 제공합니다 (djangorestframework-simplejwt 사용).
+- Django ORM을 통해 PostgreSQL 데이터베이스에 접근합니다.
+- 백엔드 API 응답은 DRF Serializer를 통해 검증 및 직렬화됩니다.
+- 프론트엔드 레이어는 전부 Client Component (`"use client"`) 로 유지하고, 서버 상태는 `@tanstack/react-query` 로만 관리합니다.
 
 ## Solution Process:
 
@@ -180,11 +171,11 @@ use following libraries for specific functionalities:
   $ npx shadcn@latest add dialog
   ```
 
-## Supabase
+## Backend & Database
 
-- if you need to add new table, please create migration. I'll paste it into supabase.
-- do not run supabase locally
-- store migration query for `.sql` file. in /supabase/migrations/
+- 백엔드는 Django REST Framework로 구현됩니다.
+- 데이터베이스는 PostgreSQL을 사용하며, Django ORM을 통해 접근합니다.
+- 새로운 모델이 필요할 경우 `backend/apps/[appName]/models.py`에 정의하고 `python manage.py makemigrations`, `python manage.py migrate`를 실행합니다.
 
 ## Package Manager
 
